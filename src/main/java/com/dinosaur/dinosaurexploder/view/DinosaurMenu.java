@@ -13,7 +13,13 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 public class DinosaurMenu extends FXGLMenu {
+    public static int play = 1;
+    Properties properties = new Properties();
 
     public DinosaurMenu() {
         super(MenuType.MAIN_MENU);
@@ -28,9 +34,11 @@ public class DinosaurMenu extends FXGLMenu {
         var title = FXGL.getUIFactoryService().newText("Dinosaur Exploder", Color.LIME, FontType.MONO, 35);
         var startButton = new Button("Start Game");
         var quitButton = new Button("Quit");
+        var soundButton = new Button("Sound");
 
         startButton.setMinSize(200, 100);
         quitButton.setMinSize(200, 100);
+        soundButton.setMinSize(50, 50);
 
         title.setTranslateY(100);
         title.setTranslateX(getAppWidth() / 2 - 175);
@@ -43,15 +51,47 @@ public class DinosaurMenu extends FXGLMenu {
         quitButton.setTranslateX(getAppWidth() / 2 - 100);
         quitButton.setStyle("-fx-font-size:20");
 
+        soundButton.setTranslateY(10);
+        soundButton.setTranslateX(getAppWidth() / 2 + 150);
+        soundButton.setStyle("-fx-font-size:20");
+
         startButton.setOnAction(event -> {
             fireNewGame();
             mainMenuSound.stop();
         });
         quitButton.setOnAction(event -> fireExit());
 
+        soundButton.setOnAction(event -> {
+            if (play == 1){
+                try {
+                    properties.setProperty("flag","0");
+                    FileOutputStream fileOut = new FileOutputStream("config.properties");
+                    properties.store(fileOut,"App Configuration");
+                    fileOut.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                play = 0;
+                mainMenuSound.stop();
+            }
+            else {
+                try {
+                    properties.setProperty("flag","1");
+                    FileOutputStream fileOut = new FileOutputStream("config.properties");
+                    properties.store(fileOut,"App Configuration");
+                    fileOut.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                play = 1;
+                mainMenuSound.play();
+            }
+        });
+
         getContentRoot().getChildren().addAll(
                 bg, title, startButton, quitButton
         );
+
     }
 
 }

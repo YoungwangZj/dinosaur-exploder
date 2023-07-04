@@ -9,6 +9,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import static com.almasb.fxgl.dsl.FXGL.*;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.spawn;
 import static javafx.util.Duration.seconds;
@@ -22,6 +26,20 @@ public class DinosaurController {
     private Entity score;
     private Entity life;
     private int lives = 3;
+    private int play;
+    Properties properties = new Properties();
+    FileInputStream fileIn;
+    public void init(){
+        try {
+            fileIn = new FileInputStream("config.properties");
+            properties.load(fileIn);
+            fileIn.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String flag = properties.getProperty("flag");
+        play = Integer.valueOf(flag);
+    };
 
     /**
      * Summary :
@@ -54,7 +72,7 @@ public class DinosaurController {
         onKey(KeyCode.LEFT, () -> player.getComponent(PlayerComponent.class).moveLeft());
         onKey(KeyCode.RIGHT, () -> player.getComponent(PlayerComponent.class).moveRight());
 
-        onKeyDown(KeyCode.SPACE,() -> player.getComponent(PlayerComponent.class).shoot());
+        onKeyDown(KeyCode.SPACE,() -> player.getComponent(PlayerComponent.class).shoot(play));
     }
     /**
      * Summary :
@@ -67,7 +85,9 @@ public class DinosaurController {
 
         player = spawn("player", getAppCenter().getX() - 45, getAppHeight()-200);
 
-        FXGL.play("gameBackground.wav");
+        if (play == 1) {
+            FXGL.play("gameBackground.wav");
+        }
 
         /*
          * At each second that passes, we have 2 out of 3 chances of spawning a green
@@ -88,21 +108,27 @@ public class DinosaurController {
      */
     public void initPhysics() {
         onCollisionBegin(EntityType.PROJECTILE, EntityType.GREENDINO, (projectile, greendino) -> {
-            FXGL.play("enemyExplode.wav");
+            if (play == 1) {
+                FXGL.play("enemyExplode.wav");
+            }
             projectile.removeFromWorld();
             greendino.removeFromWorld();
             score.getComponent(ScoreComponent.class).incrementScore(1);
         });
-        
+
         onCollisionBegin(EntityType.ENEMYPROJECTILE, EntityType.PLAYER, (projectile, player) -> {
-            FXGL.play("playerHit.wav");
+            if (play == 1) {
+                FXGL.play("playerHit.wav");
+            }
             projectile.removeFromWorld();
             System.out.println("You got hit !\n");
             damagePlayer();
         });
-        
+
         onCollisionBegin(EntityType.PLAYER, EntityType.GREENDINO, (player, greendino) -> {
-            FXGL.play("playerHit.wav");
+            if (play == 1) {
+                FXGL.play("playerHit.wav");
+            }
             greendino.removeFromWorld();
             System.out.println("You touched a dino !");
             damagePlayer();
